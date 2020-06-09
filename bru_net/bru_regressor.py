@@ -23,7 +23,9 @@ class BRU_Regressor():
 #        g =  r*(r**2 * K.abs(x) + 1)**((1-r)/r)
         return np.sign(z)*((self.r**2 * np.abs(z) + 1)**(1/self.r) - 1)
     
-    def step_forward(self, a, w):
+    def step_forward(self, a, w, with_activation=True):
+        if not with_activation:
+            return np.dot(a, w.T)
         z = np.dot(a, w.T)
         return self.activation(z)
     
@@ -35,11 +37,15 @@ class BRU_Regressor():
         a = self.step_forward(x, self.w[0])
         a = self.add_bias(a)
         for layer in range(1, self.hidden_layers+2):
-            a = self.step_forward(a, self.w[layer])
             if layer!=self.hidden_layers+1:
+                a = self.step_forward(a, self.w[layer])
                 a = self.add_bias(a)
+            else:
+                a = self.step_forward(a, self.w[layer], with_activation=False) # for output layer only linear combination
         return a
-    
+# =============================================================================
+#   do fitu a podobne daj na np.float32 
+# =============================================================================
 if __name__=='__main__':
     reg = BRU_Regressor(input_shape=(1,4), n_hidden_layers=2)
     res = reg.forward_prop(np.random.rand(1,4))
