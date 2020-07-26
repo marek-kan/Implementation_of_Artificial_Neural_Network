@@ -96,8 +96,6 @@ class BRURegressor():
 #           weights update    
             self.w[layer][0, :] = self.w[layer][0, :] - self.lr * self.v[layer][0, :]
             self.w[layer][1:, :] = self.w[layer][1:, :]*(1 - self.lr*self.reg_lambda/m) - self.lr * self.v[layer][1:, :]
-#            self.w[layer][0, :] = self.w[layer][0, :] - self.lr * grads[layer][0, :]
-#             self.w[layer][1:, :] = self.w[layer][1:, :]*(1 - self.lr*self.reg_lambda/m) - self.lr * grads[layer][1:, :]
         self.costs.append(self.cost(x, y))
                 
     def fit(self, x, y, n_iter=100, batch_size=64):
