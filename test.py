@@ -35,5 +35,5 @@ new_examples = 16
 
 nn.fit(x_te[0:new_examples, :], y_te[0:new_examples], n_iter=1) 
 print('Before sample fit: ', mae)
-print('After sample fit: ', mean_absolute_error(y_te[new_examples+1:], nn.predict(x_te[new_examples+1:, :])))
+print('After sample fit: ', mean_absolute_error(y_te[new_examples:], nn.predict(x_te[new_examples:, :])))
 
