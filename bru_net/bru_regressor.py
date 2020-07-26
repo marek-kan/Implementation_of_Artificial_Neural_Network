@@ -3,8 +3,8 @@
 import numpy as np
 
 class BRURegressor():
-    def __init__(self, input_shape=None, r=2, n_hidden_layers=1, n_units=5, learning_rate=0.1, beta=0.9,
-                 reg_lambda=0.1):
+    def __init__(self, input_shape=None, r=2, n_hidden_layers=1, n_units=5, learning_rate=0.1,
+                 reg_lambda=0.1, beta=0.9):
         self.hidden_layers = n_hidden_layers
         self.units = n_units
         self.lr = learning_rate
@@ -100,7 +100,6 @@ class BRURegressor():
                 
     def fit(self, x, y, n_iter=100, batch_size=64):
         self.costs = []
-#        m = len(x)
         m=batch_size
         y = y.reshape(-1, 1)
         for _ in range(n_iter):
@@ -110,8 +109,8 @@ class BRURegressor():
             self.back_prop(x_tr, y_tr, m)
             
             if (_+1) % 100 == 0:
-                print(_+1)
-                print(self.costs[-1])
+                print('Iteration: ', _+1)
+                print('Cost: ', self.costs[-1])
             
     def predict(self, x):
         a = self.add_bias(x)
