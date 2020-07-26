@@ -65,12 +65,12 @@ class BRU_Regressor():
     def back_prop(self, x, y, m):
         a, z = self.forward_prop(x)
         deltas = {}
-        grads = {} # TODO 
+        grads = {} 
         y_pred = z[self.hidden_layers+1].reshape(m, 1) # z because linear unit (no activation)
         deltas.update({self.hidden_layers+1: 1/m * (y_pred - y) }) # compute delta for output layer
         
         # Backpropagate
-        for layer in reversed(list(z.keys())): # for two hidden layers [1, 2, 3]; input layer doesnt have z only final "activation"
+        for layer in reversed(list(z.keys())): # for two hidden layers: [1, 2, 3]; input layer doesnt have "z" only final "activation"
             if layer==self.hidden_layers+1:
                 grad =  a[layer-1].T.dot(deltas[layer])
                 grads.update({layer-1: grad})
@@ -112,11 +112,6 @@ class BRU_Regressor():
                 pred = self.step_forward(a, self.w[layer], with_activation=False)
         return pred
 
-            
-# =============================================================================
-# Musis unroll weights aby sa to dalo vectorizovat nejako neviem, treba pochopit
-# co je v octave napisane 
-# =============================================================================
 if __name__=='__main__':
     import matplotlib.pyplot as plt
     from sklearn.datasets import load_boston
@@ -130,10 +125,11 @@ if __name__=='__main__':
     
 #    x = np.random.rand(1,4)
 #    y = np.array([2.3])/10
-#    x = 2*np.pi*np.random.rand(1000).reshape(-1, 1)
-#    y = x**2 + 2*x + 5
-    reg = BRU_Regressor(input_shape=x.shape, r=3, n_units=32, n_hidden_layers=4, learning_rate=0.01)
-    reg.fit(x, y, n_iter=10*500, batch_size=int(len(x)/1))
+    x = 2*np.pi*np.random.rand(1000).reshape(-1, 1)
+    y = x**2 + 2*x + 5
+    
+    reg = BRU_Regressor(input_shape=x.shape, r=2, n_units=128, n_hidden_layers=2, learning_rate=1e-3)
+    reg.fit(x, y, n_iter=10*500, batch_size=int(len(x)/3))
 #    res, z = reg.forward_prop(np.random.rand(1,4))
 #    reg.back_prop(np.random.rand(1,4), np.array([2.3]))
     
