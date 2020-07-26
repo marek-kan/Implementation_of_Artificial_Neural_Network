@@ -3,11 +3,13 @@
 import numpy as np
 
 class BRU_Regressor():
-    def __init__(self, input_shape=None, r=2, n_hidden_layers=1, n_units=5, learning_rate=0.1, beta=0.9):
+    def __init__(self, input_shape=None, r=2, n_hidden_layers=1, n_units=5, learning_rate=0.1, beta=0.9,
+                 reg_lambda=0.1):
         self.hidden_layers = n_hidden_layers
         self.units = n_units
         self.lr = learning_rate
         self.beta = beta
+        self.reg_lambda = reg_lambda
         self.input_shape = input_shape
         self.r = r
         self.w = {}
@@ -84,7 +86,9 @@ class BRU_Regressor():
             
         # Update
         for layer in grads.keys(): 
-            self.w[layer] = self.w[layer] - self.lr * grads[layer]
+#            self.w[layer] = self.w[layer] - self.lr * grads[layer]
+             self.w[layer][0, :] = self.w[layer][0, :] - self.lr * grads[layer][0, :]
+             self.w[layer][1:, :] = self.w[layer][1:, :]*(1 - self.lr*self.reg_lambda/m) - self.lr * grads[layer][1:, :]
         self.costs.append(self.cost(x, y))
                 
     def fit(self, x, y, n_iter=100, batch_size=64):
@@ -129,7 +133,7 @@ if __name__=='__main__':
     y = x**2 + 2*x + 5
     
     reg = BRU_Regressor(input_shape=x.shape, r=2, n_units=128, n_hidden_layers=2, learning_rate=1e-3)
-    reg.fit(x, y, n_iter=10*500, batch_size=int(len(x)/3))
+    reg.fit(x, y, n_iter=5000, batch_size=int(len(x)/3))
 #    res, z = reg.forward_prop(np.random.rand(1,4))
 #    reg.back_prop(np.random.rand(1,4), np.array([2.3]))
     
