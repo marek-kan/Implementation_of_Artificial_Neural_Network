@@ -2,26 +2,31 @@
 
 import numpy as np
 
-class BRU_Regressor():
-    def __init__(self, input_shape=None, r=2, n_hidden_layers=1, n_units=5, learning_rate=0.1, beta=0.9):
+class BRURegressor():
+    def __init__(self, input_shape=None, r=2, n_hidden_layers=1, n_units=5, learning_rate=0.1,
+                 reg_lambda=0.1, beta=0.9):
         self.hidden_layers = n_hidden_layers
         self.units = n_units
         self.lr = learning_rate
         self.beta = beta
+        self.reg_lambda = reg_lambda
         self.input_shape = input_shape
         self.r = r
         self.w = {}
-        self.D = {} # accumulator for gradients
+        self.v = {}
         for layer in range(n_hidden_layers+1): # input layer + output layer
             if layer == 0:
                 self.w.update({0: np.random.rand(input_shape[1]+1, self.units)/10}) # +1 - bias
+                self.v.update({0: np.zeros(shape=(input_shape[1]+1, self.units))})
             elif layer==n_hidden_layers: #last layer
                 self.w.update({layer: np.random.rand(self.units+1, 1)/10})
+                self.v.update({layer: np.zeros(shape=(self.units+1, 1))})
             else:
                 self.w.update({layer: np.random.rand(self.units+1, self.units)/10}) # +1 - bias
-           
+                self.v.update({layer: np.zeros(shape=(self.units+1, self.units))})
     
     def cost(self, x, y):
+        # TODO cost with lambda
         pred = self.predict(x)
         return 1/(2*len(x)) * np.sum((pred - y)**2)
     
@@ -84,12 +89,17 @@ class BRU_Regressor():
             
         # Update
         for layer in grads.keys(): 
-            self.w[layer] = self.w[layer] - self.lr * grads[layer]
+#           velocities
+            self.v[layer][0, :] = self.beta * self.v[layer][0, :] + (1-self.beta) * grads[layer][0, :]
+            self.v[layer][1:, :] = self.beta * self.v[layer][1:, :] + (1-self.beta) * grads[layer][1:, :]
+
+#           weights update    
+            self.w[layer][0, :] = self.w[layer][0, :] - self.lr * self.v[layer][0, :]
+            self.w[layer][1:, :] = self.w[layer][1:, :]*(1 - self.lr*self.reg_lambda/m) - self.lr * self.v[layer][1:, :]
         self.costs.append(self.cost(x, y))
                 
     def fit(self, x, y, n_iter=100, batch_size=64):
         self.costs = []
-#        m = len(x)
         m=batch_size
         y = y.reshape(-1, 1)
         for _ in range(n_iter):
@@ -99,8 +109,8 @@ class BRU_Regressor():
             self.back_prop(x_tr, y_tr, m)
             
             if (_+1) % 100 == 0:
-                print(_+1)
-                print(self.costs[-1])
+                print('Iteration: ', _+1)
+                print('Cost: ', self.costs[-1])
             
     def predict(self, x):
         a = self.add_bias(x)
@@ -112,35 +122,6 @@ class BRU_Regressor():
                 pred = self.step_forward(a, self.w[layer], with_activation=False)
         return pred
 
-if __name__=='__main__':
-    import matplotlib.pyplot as plt
-    from sklearn.datasets import load_boston
-    from sklearn.preprocessing import StandardScaler
-#    
-    scaler = StandardScaler()
-    sc_y = StandardScaler()
-    x, y = load_boston(return_X_y=True)
-    x = scaler.fit_transform(x)
-    y = sc_y.fit_transform(y.reshape(-1, 1))
-    
-#    x = np.random.rand(1,4)
-#    y = np.array([2.3])/10
-    x = 2*np.pi*np.random.rand(1000).reshape(-1, 1)
-    y = x**2 + 2*x + 5
-    
-    reg = BRU_Regressor(input_shape=x.shape, r=2, n_units=128, n_hidden_layers=2, learning_rate=1e-3)
-    reg.fit(x, y, n_iter=10*500, batch_size=int(len(x)/3))
-#    res, z = reg.forward_prop(np.random.rand(1,4))
-#    reg.back_prop(np.random.rand(1,4), np.array([2.3]))
-    
-#    y = sc_y.inverse_transform(y)
-#    p = reg.predict(x)
-#    p = sc_y.inverse_transform(p)
-#    plt.plot(reg.costs)
-#    y = y.reshape(-1,1)
-#    print(1/len(y) * sum(abs(p-y)))
-    plt.scatter(x, y)
-    plt.scatter(x, reg.predict(x))
-    plt.show()    
+   
 
 
